@@ -5,6 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
+
 from _loader import ensure_package_loaded, import_module
 
 ensure_package_loaded()
@@ -38,6 +40,22 @@ class FakeClient:
 
 
 class NodeTests(unittest.TestCase):
+    def test_api_guidance_preserves_billing_and_permission_reasons(self):
+        for status, code, message in (
+            (403, "insufficient_balance", "Insufficient balance"),
+            (403, "account_overdue", "Forbidden"),
+            (403, "permission_denied", "Model access denied"),
+            (429, "insufficient_quota", "Quota exhausted"),
+        ):
+            with self.subTest(status=status, code=code):
+                error = nodes.Sora2APIError.from_response(httpx.Response(
+                    status, json={"error": {"code": code, "message": message}}
+                ))
+                with self.assertRaises(ValueError) as caught:
+                    nodes._api_error(error)
+                self.assertIn(code, str(caught.exception))
+                self.assertIn(message, str(caught.exception))
+
     def test_nodes_are_registered(self):
         package = ensure_package_loaded()
         self.assertIn("ComfyUI-Sora2 Text to Video", package.NODE_CLASS_MAPPINGS)

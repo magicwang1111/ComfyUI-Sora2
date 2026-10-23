@@ -6,7 +6,8 @@ class Sora2APIError(Exception):
         self.code = code
         self.response_body = response_body
         type_label = f" {error_type}" if error_type else ""
-        super().__init__(f"API request failed ({status_code}{type_label}): {self.message}")
+        code_label = f" [{code}]" if code else ""
+        super().__init__(f"API request failed ({status_code}{type_label}){code_label}: {self.message}")
 
     @classmethod
     def from_response(cls, response):

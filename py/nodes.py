@@ -171,16 +171,16 @@ def _json_response(payload):
 def _api_error(exc):
     if exc.status_code in {401, 403}:
         raise ValueError(
-            f"API request was rejected with {exc.status_code}. Check the API key, "
+            f"{exc} Check the API key, billing, "
             "base_url, Azure resource permissions, and Sora deployment access."
         ) from exc
     if exc.status_code == 404:
         raise ValueError(
-            "API returned 404. Check that base_url ends with /openai/v1 and that "
+            f"{exc} Check that base_url ends with /openai/v1 and that "
             "the resource supports the Sora 2 Videos API."
         ) from exc
     if exc.status_code == 429:
-        raise ValueError("API rate limit exceeded (429). Wait and retry.") from exc
+        raise ValueError(f"{exc} Check billing/quota or request rate according to the API error above.") from exc
     raise ValueError(str(exc)) from exc
 
 
